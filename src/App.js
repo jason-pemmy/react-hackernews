@@ -2,60 +2,34 @@ import React, { Component } from 'react';
 import './App.css';
 
 const DEFAULT_QUERY = 'redux';
+const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = '100';
+
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
-
-/*const list = [{
-	title: 'React',
-	url: 'https://facebook.github.io/react/',
-	author: 'Jordan Walke',
-	num_comments: 3,
-	points: 4,
-	objectID: 0,
-},{
-	title: 'Redux',
-	url: 'https://github.com/reactjs/redux',
-	author: 'Dan Abramov, Andrew Clark',
-	num_comments: 2,
-	points: 5,
-	objectID: 1,
-}];*/
-
-
-/*(function(){
-	var parentObj = {
-		id: 1,
-		isOld: true,
-		favFood: ["burger","fries"],
-		printDetails: function(){
-						
-			console.log("parentDetails: "+ this.id + " - " + this.favFood);
-		}
-	}
-
-	parentObj.printDetails();
-})()*/
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 const isSearched = (searchTerm) => (item) => 
 	!searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()); 
 	// function returns a function that checks to see if the list title is included in the user search query
 	//includes() https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/includes?v=control
 
-const Search = ({value, onChange, children}) =>	//deconstruct the props here
-	<form>
+const Search = ({value, onChange, onSubmit, children}) =>	//deconstruct the props here
+	<form onSubmit={onSubmit}>
 		{children}
 		<input 
 			type="text"
 			value={value} //control the input. (make the value = to the state) let the state remain the single source of truth
 			onChange={onChange}
 		/>
+		<button type="submit">{children}</button>	
 	</form>
 
-
-const Table = ({list, pattern, onDismiss}) =>	//deconstruct the props here	
+const Table = ({ list, onDismiss }) =>	//deconstruct the props here	
 	<div className="table">
-		{list.filter(isSearched(pattern)).map(item =>					
+		{ list.map( item =>					
 			<div key={item.objectID} className="table-row">
 				<span style={{ width: "40%" }}>
 					<a href={item.url}>{item.title}</a>
@@ -84,43 +58,58 @@ const Button = ({onClick, className = "", children}) =>	//deconstruct the props 
 		{children}
 	</button>
 
-
-
 class App extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
-			result: null,
-			searchTerm: ''
+			results: null,
+			searchKey: '',
+			searchTerm: DEFAULT_QUERY,
 		};		
 
 		this.setSearchTopstories = this.setSearchTopstories.bind(this);
-		this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);
-		this.onDismiss = this.onDismiss.bind(this);
+		this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);		
 		this.onSearchChange = this.onSearchChange.bind(this);
+		this.onSearchSubmit = this.onSearchSubmit.bind(this);
+		this.onDismiss = this.onDismiss.bind(this);
+	}
+
+	onSearchSubmit(event) {
+		const { searchTerm } = this.state;
+		this.setState({ searchKey: searchTerm });
+		this.fetchSearchTopstories( searchTerm, DEFAULT_PAGE );
+		event.preventDefault();
 	}
 
 	setSearchTopstories(result) {
-		this.setState({ result });
+		const { hits, page } = result;
+		const { searchKey, results } = this.state;
+		const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
+		const updatedHits = [ ...oldHits, ...hits ];
+
+		this.setState({ results: { ...results, [searchKey]: { hits: updatedHits, page }} });
 	}
 
-	fetchSearchTopstories(searchTerm) {
-		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+	fetchSearchTopstories(searchTerm, page) {
+		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
 		.then(response => response.json())
 		.then(result => this.setSearchTopstories(result));
 	}
 
 	componentDidMount() {
 		const { searchTerm } = this.state;
-		this.fetchSearchTopstories(searchTerm);
+		this.setState({ searchKey: searchTerm });
+		this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
 	}
 
 	onDismiss(id) {		
 		const isNotId = item => item.objectID !== id;
-		const updatedList = this.state.list.filter(isNotId);
+		const updatedHits = this.state.result.hits.filter(isNotId);
 		//filter() https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/filter?v=control	
-		this.setState({list: updatedList});	
+		this.setState({
+			result: { ...this.state.result, hits: updatedHits }	
+		});	
 	}
 
 	onSearchChange(event) {
@@ -128,12 +117,8 @@ class App extends Component {
 	}
 
 	render() {
-		const { list,searchTerm } = this.state; //destructuring
-
-		(function(){
-			return typeof arguments;
-			
-		})();
+		const { searchTerm, result } = this.state; //destructuring
+		const page = (result && result.page) || 0;
 
 		return (
 			<div className="page">
@@ -141,14 +126,34 @@ class App extends Component {
 					<Search 
 						value={searchTerm}
 						onChange={this.onSearchChange}
+						onSubmit={this.onSearchSubmit}
 					>
-						Search 
-					</Search>	
-					<Table 
-						list={list}
-						pattern={searchTerm}
-						onDismiss={this.onDismiss}
-					/>
+						Search  
+					</Search>
+					{ result ? 
+						<Table 
+							list={ result.hits }
+							onDismiss={this.onDismiss}
+						/> : null
+					}
+
+					{
+						//Either the ternary condition or the following && operator work in for conditional rendering 
+						//false && "hello world" proves false
+						//true && "hello world" proves true
+
+						/*result &&
+						<Table 
+							list={ result.hits }
+							pattern={searchTerm}
+							onDismiss={this.onDismiss}
+						/>*/
+					}
+					<div className="interactions">
+						<Button onClick={ () => this.fetchSearchTopstories( searchTerm, page + 1 ) }>
+							More
+						</Button>	
+					</div>					
 				</div>
 			</div>
 		);
