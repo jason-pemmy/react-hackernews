@@ -11,11 +11,6 @@ const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
 
-const isSearched = (searchTerm) => (item) => 
-	!searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()); 
-	// function returns a function that checks to see if the list title is included in the user search query
-	//includes() https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/includes?v=control
-
 const Search = ({value, onChange, onSubmit, children}) =>	//deconstruct the props here
 	<form onSubmit={onSubmit}>
 		{children}
@@ -29,6 +24,7 @@ const Search = ({value, onChange, onSubmit, children}) =>	//deconstruct the prop
 
 const Table = ({ list, onDismiss }) =>	//deconstruct the props here	
 	<div className="table">
+		
 		{ list.map( item =>					
 			<div key={item.objectID} className="table-row">
 				<span style={{ width: "40%" }}>
@@ -68,6 +64,7 @@ class App extends Component {
 			searchTerm: DEFAULT_QUERY,
 		};		
 
+		this.needsToSearchTopstories = this.needsToSearchTopstories.bind(this);
 		this.setSearchTopstories = this.setSearchTopstories.bind(this);
 		this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);		
 		this.onSearchChange = this.onSearchChange.bind(this);
@@ -75,19 +72,26 @@ class App extends Component {
 		this.onDismiss = this.onDismiss.bind(this);
 	}
 
+	needsToSearchTopstories(searchTerm) {
+		return !this.state.results[searchTerm];
+	}
+
 	onSearchSubmit(event) {
 		const { searchTerm } = this.state;
 		this.setState({ searchKey: searchTerm });
-		this.fetchSearchTopstories( searchTerm, DEFAULT_PAGE );
+		if (this.needsToSearchTopstories(searchTerm)) {
+			this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
+		}
 		event.preventDefault();
 	}
 
 	setSearchTopstories(result) {
+		//console.log("result: " + result);
 		const { hits, page } = result;
 		const { searchKey, results } = this.state;
 		const oldHits = results && results[searchKey] ? results[searchKey].hits : [];
 		const updatedHits = [ ...oldHits, ...hits ];
-
+		//console.log("hits: " + hits + "page: "+ page);
 		this.setState({ results: { ...results, [searchKey]: { hits: updatedHits, page }} });
 	}
 
@@ -103,12 +107,13 @@ class App extends Component {
 		this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
 	}
 
-	onDismiss(id) {		
+	onDismiss(id) {	
+		const { searchKey, results } = this.state;
+    	const { hits, page } = results[searchKey];	
 		const isNotId = item => item.objectID !== id;
-		const updatedHits = this.state.result.hits.filter(isNotId);
-		//filter() https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/filter?v=control	
+		const updatedHits = hits.filter(isNotId);
 		this.setState({
-			result: { ...this.state.result, hits: updatedHits }	
+			results: { ...results, [searchKey]: {hits: updatedHits, page }}	
 		});	
 	}
 
@@ -117,8 +122,10 @@ class App extends Component {
 	}
 
 	render() {
-		const { searchTerm, result } = this.state; //destructuring
-		const page = (result && result.page) || 0;
+		const { searchTerm, results, searchKey } = this.state; //destructuring
+		const page = (results && results[searchKey] && results[searchKey].page) || 0;
+		const list = (results && results[searchKey] && results[searchKey].hits) || [];
+		console.log("result: "+ results + " - " + searchTerm );
 
 		return (
 			<div className="page">
@@ -129,26 +136,11 @@ class App extends Component {
 						onSubmit={this.onSearchSubmit}
 					>
 						Search  
-					</Search>
-					{ result ? 
-						<Table 
-							list={ result.hits }
-							onDismiss={this.onDismiss}
-						/> : null
-					}
-
-					{
-						//Either the ternary condition or the following && operator work in for conditional rendering 
-						//false && "hello world" proves false
-						//true && "hello world" proves true
-
-						/*result &&
-						<Table 
-							list={ result.hits }
-							pattern={searchTerm}
-							onDismiss={this.onDismiss}
-						/>*/
-					}
+					</Search> 
+					<Table 
+						list={ list }
+						onDismiss={this.onDismiss}
+					/>
 					<div className="interactions">
 						<Button onClick={ () => this.fetchSearchTopstories( searchTerm, page + 1 ) }>
 							More
