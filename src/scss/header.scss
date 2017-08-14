@@ -1,0 +1,16 @@
+.header-container {
+    position: absolute;
+    width: 100%;
+    height: 75px;
+    padding: 10px;
+    background-color: rgba(12,11,11,0.8); 
+    img {
+        display: inline-block;
+        width: 60px;
+    }
+    h4 {
+        display: inline-block;
+        margin-left: 20px;
+        color: #fff;
+    }
+}

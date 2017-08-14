@@ -1,0 +1,67 @@
+.slider-container {
+    text-align: center; 
+    //margin-top: -260px;
+    color: #000;
+    font-family: 'Titillium Web', sans-serif;
+
+    @media screen and( min-width:768px ) {
+        margin-top: -260px;
+        color: #fff;
+    }
+
+    .go-btn {
+        width: 120px;
+        height: 40px;
+        background-color: #e48544;
+        color: #000;
+        border: none;
+        border-radius:6px;
+        transition: all .3s ease-in-out;
+        font-family: 'Titillium Web', sans-serif;
+
+        &:hover {
+            background-color: #000;
+            color: #fff;
+        }
+    }
+
+    .nav-btn-container {
+        width: 300px;
+        margin: 0 auto;
+        font-size: 35px;
+
+        .left-button {
+            display: inline-block;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: all .3s ease-in-out;
+
+            &:hover {
+                color: #e48544;
+            }
+        }
+
+        .sol-selected-btn {
+            display: inline-block;
+            font-size: 25px;
+            -webkit-user-select: none; /* Chrome/Safari */        
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+ */
+        }
+
+        .right-button {
+            display: inline-block;
+            margin-left: 15px;
+            cursor: pointer;
+            transition: all .3s ease-in-out;
+
+            &:hover {
+                color: #e48544;
+            }
+        }
+    }
+
+    .rangeslider-horizontal .rangeslider__fill {
+        background-color: #e48544; 
+    }
+}
