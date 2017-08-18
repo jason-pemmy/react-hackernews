@@ -52,6 +52,8 @@ const Gallery = ({selectedSolData, totalPages, pagesViewed, requestBtnClicked, p
 			photosAry.map( ( photos, i ) =>
 				<ImageTile
 					imgSrc={photos.img_src}
+					camera={photos.camera.full_name}
+					dateTaken={photos.earth_date}
 					key={i}
 				/>
 			) : 

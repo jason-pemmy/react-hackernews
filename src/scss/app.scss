@@ -2,6 +2,11 @@ html,body {
     overflow-x: hidden;
 }
 
+body.disable-scrolling {
+    position: fixed;
+	overflow-y: hidden;	
+}
+
 h1,h2,h3,h4,p {
     font-family: 'Titillium Web', sans-serif;
 }
@@ -9,7 +14,6 @@ h1,h2,h3,h4,p {
     .main-preloader {
         position: relative;
         top: 50px;
-        //padding-top: 100px;
     }
 
     .back-to-top {

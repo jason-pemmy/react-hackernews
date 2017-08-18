@@ -23,13 +23,12 @@ class ImageTile extends Component {
 	}
 
 	render() {
-		const { imgSrc } = this.props;
+		const { imgSrc, camera, dateTaken } = this.props;
 		const { imgLoading } = this.state;
 		const loaderType = "ImageLoader";
 
  		return(
-			<div 
-				className="img-container">
+			<div className="img-container">
 				<Preloader 
 					imgLoading={imgLoading} 
 					loaderType={loaderType}
@@ -41,7 +40,8 @@ class ImageTile extends Component {
 					onLoad={() => this.handleImageLoaded()}
 				/>
 				<div className="img-detail-overlay">
-
+					<span><strong>Camera:</strong> {camera}</span>
+					<span><strong>Earth date:</strong> {dateTaken}</span>
 				</div>
 			</div>
 		)

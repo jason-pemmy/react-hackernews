@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import scrollToComponent from 'react-scroll-to-component';
 import Header from './components/Header';
+import Menu from './components/Menu';
 import Hero from './components/Hero';
 import Controls from './components/Controls';
 import Gallery from './components/Gallery';
@@ -26,6 +27,7 @@ class App extends Component {
 			clearGallery: false,
 			showScrollToTop: false,
 			showPreloader: false,
+			toggleMenu: null,
 		};
 
 		this.parseDataBySol = this.parseDataBySol.bind(this);
@@ -34,6 +36,7 @@ class App extends Component {
 		this.throttle = this.throttle.bind(this);
 		this.solSelectedFromControl = this.solSelectedFromControl.bind(this);
 		this.handleRequestBtnClicked = this.handleRequestBtnClicked.bind(this);
+		this.handleMenuBtnToggle = this.handleMenuBtnToggle.bind(this);
 	}
 
 	componentDidMount() {
@@ -131,8 +134,13 @@ class App extends Component {
         this.fetchDataFromNASAByPage(nextPage);
 	}
 
+	handleMenuBtnToggle(toggleMenu) {
+		this.setState({ toggleMenu: toggleMenu });
+		document.body.classList.toggle("disable-scrolling", toggleMenu);
+	}
+
 	render() {
-		const { solSelected, currentSol, maxSols, selectedSolData, results, clearGallery, showScrollToTop, showPreloader } = this.state;
+		const { solSelected, currentSol, maxSols, selectedSolData, results, clearGallery, showScrollToTop, showPreloader, toggleMenu } = this.state;
 		var totalPages;
 		var pagesViewed;
 		var photosToRender;
@@ -149,7 +157,8 @@ class App extends Component {
 
 		return (
 			<div className="app-container">
-				<Header />
+				<Header handleMenuBtnToggle={this.handleMenuBtnToggle} />
+				<Menu toggleMenu={toggleMenu} />
 				<Hero />
 				<Controls
 					maxSols={maxSols}
